@@ -34,7 +34,7 @@ ONNX_CPU_OPERATOR_KERNEL(
     c_type val;                                                                                             \
     auto unpack_status = UnpackTensor(t_proto, raw_data, raw_data_len, &val, 1);                            \
     ORT_ENFORCE(unpack_status.IsOK(), "Value attribute unpacking failed:", unpack_status.ErrorMessage());   \
-    SetValue(sizeof(c_type), reinterpret_cast<void*>(&val));                                                \
+    SetValue(tensor_type, sizeof(c_type), reinterpret_cast<void*>(&val));                                                \
   }
 
 void onnxruntime::ConstantOfShapeBase::SetValueFromTensorProto(const ONNX_NAMESPACE::TensorProto& t_proto) {
@@ -104,7 +104,7 @@ ConstantOfShapeBase::ConstantOfShapeBase(const OpKernelInfo& info){
     SetValueFromTensorProto(t_proto);
   } else {
     float f_value = 0.f;
-    SetValue(sizeof(float), reinterpret_cast<void*>(&f_value));
+    SetValue(TensorProto::FLOAT, sizeof(float), reinterpret_cast<void*>(&f_value));
   }
 }
 
@@ -123,6 +123,7 @@ Status ConstantOfShapeBase::PrepareCompute(OpKernelContext* ctx, Tensor** output
 
   TensorShape output_shape(output_dims);
   (*output_tensor) = ctx->Output(0, output_shape);
+  ORT_ENFORCE((*output_tensor)->GetElementType() == element_type_, "Constant element type must match output");
 
   return Status::OK();
 }

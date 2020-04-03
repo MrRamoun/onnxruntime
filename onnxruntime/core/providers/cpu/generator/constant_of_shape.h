@@ -26,8 +26,10 @@ class ConstantOfShapeBase {
     int64_t int64_;
   } s_value_;
   void* p_value_;
+  int32_t element_type_;
 
-  void SetValue(size_t size, void* value) {
+  void SetValue(int32_t element_type, size_t size, void* value) {
+    element_type_ = element_type;
     switch (size) {
       case sizeof(int8_t):
         s_value_.int8_ = *(reinterpret_cast<int8_t*>(value));
