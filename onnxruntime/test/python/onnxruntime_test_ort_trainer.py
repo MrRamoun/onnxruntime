@@ -13,6 +13,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from helper import get_name
+import onnxruntime
 from onnxruntime.capi.ort_trainer import ORTTrainer, IODescription, ModelDescription, LossScaler, generate_sample
 
 def ort_trainer_learning_rate_description():
@@ -64,6 +65,7 @@ def runBertTrainingTest(gradient_accumulation_steps, use_mixed_precision, allred
 
     onnx_model = onnx.load(get_name("bert_toy_postprocessed.onnx"))
 
+    onnxruntime.seed(1)
     model = ORTTrainer(onnx_model, None, simple_model_desc, "LambOptimizer",
                        map_optimizer_attributes,
                        learning_rate_description,
@@ -71,8 +73,7 @@ def runBertTrainingTest(gradient_accumulation_steps, use_mixed_precision, allred
                        gradient_accumulation_steps=gradient_accumulation_steps,
                        world_rank=0, world_size=1,
                        use_mixed_precision=use_mixed_precision,
-                       allreduce_post_accumulation=allreduce_post_accumulation,
-                       seed=1)
+                       allreduce_post_accumulation=allreduce_post_accumulation)
 
     loss_scaler = LossScaler(model.loss_scale_input_name, True)
 
